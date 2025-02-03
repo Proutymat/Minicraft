@@ -19,6 +19,7 @@ using Microsoft::WRL::ComPtr;
 Shader* basicShader;
 
 ComPtr<ID3D11Buffer> vertexBuffer;
+ComPtr<ID3D11Buffer> indexBuffer;
 ComPtr<ID3D11InputLayout> inputLayout;
 
 // Game
@@ -58,6 +59,37 @@ void Game::Initialize(HWND window, int width, int height) {
 		inputLayout.ReleaseAndGetAddressOf());
 
 	// TP: allouer vertexBuffer ici
+	std::vector<float> data = 
+	{
+		-0.7f,0.5f, 0.0f, //v0
+		0.5f, 0.5f, 0.0f, //v1
+		0.5f, -0.5f, 0.0f, //v2
+		-0.5f, -0.5f, 0.0f, //v3
+	};
+
+	std::vector<uint32_t> indexData =
+	{
+		0,1,2,
+		2,3,0
+	};
+
+
+	CD3D11_BUFFER_DESC desc(
+		sizeof(float) * data.size(), //la description a besoin de la taille en bit de notre tableau
+		D3D11_BIND_VERTEX_BUFFER); //on peut mettre plusieurs flag en gros la on utilise vertex psk on met que les positions
+	
+	CD3D11_BUFFER_DESC indexDesc(
+		sizeof(uint32_t) * indexData.size(),
+		D3D11_BIND_INDEX_BUFFER);
+
+	D3D11_SUBRESOURCE_DATA initData = {}; //obliger de l'initialisé psk sinon ca ne marche qu'en debug et pas en release
+	D3D11_SUBRESOURCE_DATA indexInitData = {};
+
+	indexInitData.pSysMem = indexData.data();
+	initData.pSysMem = data.data(); //data.data() ca donne un ptr vers le premier float
+
+	device->CreateBuffer(&indexDesc, &indexInitData, indexBuffer.ReleaseAndGetAddressOf());
+	device->CreateBuffer(&desc, &initData, vertexBuffer.ReleaseAndGetAddressOf());
 }
 
 void Game::Tick() {
@@ -87,7 +119,7 @@ void Game::Render() {
 	if (m_timer.GetFrameCount() == 0)
 		return;
 
-	auto context = m_deviceResources->GetD3DDeviceContext();
+	auto context = m_deviceResources->GetD3DDeviceContext(); //API pour envoyer des commandes afin de manipuler le pipeline
 	auto renderTarget = m_deviceResources->GetRenderTargetView();
 	auto depthStencil = m_deviceResources->GetDepthStencilView();
 	auto const viewport = m_deviceResources->GetScreenViewport();
@@ -103,7 +135,13 @@ void Game::Render() {
 	basicShader->Apply(m_deviceResources.get());
 
 	// TP: Tracer votre vertex buffer ici
+	ID3D11Buffer* vbs[] = {vertexBuffer.Get()};
+	const UINT strides[] = {sizeof(float) * 3}; //taille de chaque element
+	const UINT offsets[] = {0};
 
+	context->IASetVertexBuffers(0, 1, vbs, strides, offsets);
+	context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	context->DrawIndexed(6, 0, 0);
 	// envoie nos commandes au GPU pour etre afficher � l'�cran
 	m_deviceResources->Present();
 }
