@@ -7,9 +7,9 @@
 
 #include "PerlinNoise.hpp"
 #include "Engine/Shader.h"
-#include "Engine/VertexBuffer.h"
+#include "Engine/Buffers.h"
 #include "Engine/VertexLayout.h"
-#include "Engine/VertexBuffer.h"
+#include "Minicraft/Cube.h"
 
 extern void ExitGame() noexcept;
 
@@ -20,6 +20,8 @@ using Microsoft::WRL::ComPtr;
 
 // Global stuff
 Shader* basicShader;
+
+Cube cube;
 
 struct ModelData {
 	Matrix model;
@@ -65,17 +67,22 @@ void Game::Initialize(HWND window, int width, int height) {
 	GenerateInputLayout<VertexLayout_PositionUV>(m_deviceResources.get(), basicShader);
 
 	projection = Matrix::CreatePerspectiveFieldOfView(75.0f * XM_PI / 180.0f, (float)width / (float)height, 0.01f, 100.0f);
+
+	cube.Generate(m_deviceResources.get());
 	
-	vertexBuffer.PushVertex({{-0.5f,  0.5f,  0.0f, 1.0f}, {1.0f, 1.0f}});
-	vertexBuffer.PushVertex({{ 0.5f, -0.5f,  0.0f, 1.0f}, {0.0f, 0.0f}}); // v1
-	vertexBuffer.PushVertex({{-0.5f, -0.5f,  0.0f, 1.0f}, {0.0f, 1.0f}}); // v2
+	// Vertex buffer
+	vertexBuffer.PushVertex({{-0.5f,  0.5f,  0.0f, 1.0f}, {0.0f, 1.0f}});
+	vertexBuffer.PushVertex({{ 0.5f, -0.5f,  0.0f, 1.0f}, {1.0f, 0.0f}}); // v1
+	vertexBuffer.PushVertex({{-0.5f, -0.5f,  0.0f, 1.0f}, {0.0f, 0.0f}}); // v2
 	vertexBuffer.PushVertex({{ 0.5f,  0.5f,  0.0f, 1.0f}, {1.0f, 1.0f}}); // v3
 	vertexBuffer.Create(m_deviceResources.get());
-	
+
+	// Index buffer
 	indexBuffer.PushTriangle(0, 1, 2);
 	indexBuffer.PushTriangle(0, 3, 1);
 	indexBuffer.Create(m_deviceResources.get());
 
+	// Model and Camera buffer
 	constantBufferModel.Create(m_deviceResources.get());
 	constantBufferCamera.Create(m_deviceResources.get());
 }
@@ -95,7 +102,7 @@ void Game::Update(DX::StepTimer const& timer) {
 	
 	// add kb/mouse interact here
 	view = Matrix::CreateLookAt(
-		Vector3(2 * sin(timer.GetTotalSeconds()), 0, 2 * cos(timer.GetTotalSeconds())),
+		Vector3(2 * sin(timer.GetTotalSeconds()), 2 * sin(timer.GetTotalSeconds()), 2 * cos(timer.GetTotalSeconds())),
 		Vector3::Zero,      // Point ciblé (origine)
 		Vector3::Up         // Orientation "haut"
 	);
@@ -126,25 +133,21 @@ void Game::Render() {
 	ApplyInputLayout<VertexLayout_PositionUV>(m_deviceResources.get());
 
 	basicShader->Apply(m_deviceResources.get());
-
-	// TP: Tracer votre vertex buffer ici
-	vertexBuffer.Apply(m_deviceResources.get());
-	indexBuffer.Apply(m_deviceResources.get());
 	
 	constantBufferModel.ApplyToVS(m_deviceResources.get(), 0);
 	constantBufferCamera.ApplyToVS(m_deviceResources.get(), 1);
 	
-	for(float x = -0.5; x < 0.5; x += 0.1) {
-		constantBufferModel.data.model = Matrix::CreateTranslation(Vector3(x, x, 0)).Transpose();
+	for(float x = -100; x < 100; x += 0.1) {
+		constantBufferModel.data.model = Matrix::CreateTranslation(Vector3(x, x, x)).Transpose();
 		constantBufferModel.UpdateBuffer(m_deviceResources.get());
 		constantBufferCamera.data.view = view.Transpose();
 		constantBufferCamera.data.projection = projection.Transpose();
 		constantBufferCamera.UpdateBuffer(m_deviceResources.get());
-		
-		context->DrawIndexed(indexBuffer.Size(), 0, 0);
+
+		cube.Draw(m_deviceResources.get());
 	}
 	
-	m_deviceResources->Present(); // envoie nos commandes au GPU pour etre afficher � l'�cran
+	m_deviceResources->Present(); // Envoie nos commandes au GPU pour être affiché à l'écran
 }
 
 

@@ -100,7 +100,7 @@ public:
 	}
 
 	void ApplyToVS(DeviceResources* deviceRes, int slot = 0) {
-		ID3D11Buffer* cbs[] = { buffer.Get() };
+		ID3D11Buffer* cbs[] = {buffer.Get()};
 		deviceRes->GetD3DDeviceContext()->VSSetConstantBuffers(slot, 1, cbs);
 	}
 };
