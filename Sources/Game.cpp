@@ -67,8 +67,8 @@ void Game::Initialize(HWND window, int width, int height) {
 	projection = Matrix::CreatePerspectiveFieldOfView(75.0f * XM_PI / 180.0f, (float)width / (float)height, 0.01f, 100.0f);
 	
 	vertexBuffer.PushVertex({{-0.5f,  0.5f,  0.0f, 1.0f}, {1.0f, 1.0f}});
-	vertexBuffer.PushVertex({{ 0.5f, -0.5f,  0.0f, 1.0f}, {1.0f, 1.0f}}); // v1
-	vertexBuffer.PushVertex({{-0.5f, -0.5f,  0.0f, 1.0f}, {1.0f, 1.0f}}); // v2
+	vertexBuffer.PushVertex({{ 0.5f, -0.5f,  0.0f, 1.0f}, {0.0f, 0.0f}}); // v1
+	vertexBuffer.PushVertex({{-0.5f, -0.5f,  0.0f, 1.0f}, {0.0f, 1.0f}}); // v2
 	vertexBuffer.PushVertex({{ 0.5f,  0.5f,  0.0f, 1.0f}, {1.0f, 1.0f}}); // v3
 	vertexBuffer.Create(m_deviceResources.get());
 	
