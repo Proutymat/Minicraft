@@ -18,8 +18,21 @@ using Microsoft::WRL::ComPtr;
 // Global stuff
 Shader* basicShader;
 
+struct ModelData {
+	Matrix model;
+};
+struct CameraData {
+	Matrix view;
+	Matrix projection;
+};
+
+Matrix view;
+Matrix projection;
+
 ComPtr<ID3D11Buffer> vertexBuffer;
 ComPtr<ID3D11Buffer> indexBuffer;
+ComPtr<ID3D11Buffer> constantBufferModel;
+ComPtr<ID3D11Buffer> constantBufferCamera;
 ComPtr<ID3D11InputLayout> inputLayout;
 
 // Game
@@ -48,6 +61,8 @@ void Game::Initialize(HWND window, int width, int height) {
 	basicShader = new Shader(L"Basic");
 	basicShader->Create(m_deviceResources.get());
 
+	projection = Matrix::CreatePerspectiveFieldOfView(75.0f * XM_PI / 180.0f, (float)width / (float)height, 0.01f, 100.0f);
+	
 	auto device = m_deviceResources->GetD3DDevice();
 
 	const std::vector<D3D11_INPUT_ELEMENT_DESC> InputElementDescs = {
@@ -82,14 +97,25 @@ void Game::Initialize(HWND window, int width, int height) {
 		sizeof(uint32_t) * indexData.size(),
 		D3D11_BIND_INDEX_BUFFER);
 
+	CD3D11_BUFFER_DESC descModel(
+		sizeof(ModelData),
+		D3D11_BIND_CONSTANT_BUFFER);
+	
+	CD3D11_BUFFER_DESC descCamera(
+		sizeof(CameraData),
+		D3D11_BIND_CONSTANT_BUFFER);
+	
 	D3D11_SUBRESOURCE_DATA initData = {}; //obliger de l'initialisé psk sinon ca ne marche qu'en debug et pas en release
 	D3D11_SUBRESOURCE_DATA indexInitData = {};
 
 	indexInitData.pSysMem = indexData.data();
 	initData.pSysMem = data.data(); //data.data() ca donne un ptr vers le premier float
 
-	device->CreateBuffer(&indexDesc, &indexInitData, indexBuffer.ReleaseAndGetAddressOf());
 	device->CreateBuffer(&desc, &initData, vertexBuffer.ReleaseAndGetAddressOf());
+	device->CreateBuffer(&indexDesc, &indexInitData, indexBuffer.ReleaseAndGetAddressOf());
+	device->CreateBuffer(&descModel, nullptr, constantBufferModel.ReleaseAndGetAddressOf());
+	device->CreateBuffer(&descCamera, nullptr, constantBufferCamera.ReleaseAndGetAddressOf());
+	
 }
 
 void Game::Tick() {
@@ -106,6 +132,11 @@ void Game::Update(DX::StepTimer const& timer) {
 	auto const ms = m_mouse->GetState();
 	
 	// add kb/mouse interact here
+	view = Matrix::CreateLookAt(
+		Vector3(2 * sin(timer.GetTotalSeconds()), 0, 2 * cos(timer.GetTotalSeconds())),
+		Vector3::Zero,      // Point ciblé (origine)
+		Vector3::Up         // Orientation "haut"
+	);
 	
 	if (kb.Escape)
 		ExitGame();
@@ -124,7 +155,7 @@ void Game::Render() {
 	auto depthStencil = m_deviceResources->GetDepthStencilView();
 	auto const viewport = m_deviceResources->GetScreenViewport();
 
-	context->ClearRenderTargetView(renderTarget, Colors::CornflowerBlue);
+	context->ClearRenderTargetView(renderTarget, Colors::WhiteSmoke);
 	context->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	context->RSSetViewports(1, &viewport);
 	context->OMSetRenderTargets(1, &renderTarget, depthStencil);
@@ -141,7 +172,20 @@ void Game::Render() {
 
 	context->IASetVertexBuffers(0, 1, vbs, strides, offsets);
 	context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+	ModelData dataModel = {};
+	dataModel.model = Matrix::CreateTranslation(Vector3(0.5f, 0, 0)).Transpose();
+	CameraData dataCamera = {};
+	dataCamera.view = view.Transpose();
+	dataCamera.projection = projection.Transpose();
+	context->UpdateSubresource(constantBufferModel.Get(), 0, nullptr, &dataModel, 0, 0);
+	context->UpdateSubresource(constantBufferCamera.Get(), 0, nullptr, &dataCamera, 0, 0);
+
+	ID3D11Buffer* cbs[] = { constantBufferModel.Get(), constantBufferCamera.Get() };
+	context->VSSetConstantBuffers(0, 2, cbs);
+
 	context->DrawIndexed(6, 0, 0);
+	
 	// envoie nos commandes au GPU pour etre afficher � l'�cran
 	m_deviceResources->Present();
 }
@@ -171,6 +215,10 @@ void Game::OnWindowSizeChanged(int width, int height) {
 	if (!m_deviceResources->WindowSizeChanged(width, height))
 		return;
 
+	projection = Matrix::CreatePerspectiveFieldOfView(
+		75.0f * XM_PI / 180.0f, (float)width / (float)height, 0.01f, 100.0f
+	);
+	
 	// The windows size has changed:
 	// We can realloc here any resources that depends on the target resolution (post processing etc)
 }
