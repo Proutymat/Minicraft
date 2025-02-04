@@ -7,6 +7,7 @@
 
 #include "PerlinNoise.hpp"
 #include "Engine/Shader.h"
+#include "Engine/VertexLayout.h"
 
 extern void ExitGame() noexcept;
 
@@ -33,7 +34,6 @@ ComPtr<ID3D11Buffer> vertexBuffer;
 ComPtr<ID3D11Buffer> indexBuffer;
 ComPtr<ID3D11Buffer> constantBufferModel;
 ComPtr<ID3D11Buffer> constantBufferCamera;
-ComPtr<ID3D11InputLayout> inputLayout;
 
 // Game
 Game::Game() noexcept(false) {
@@ -60,26 +60,18 @@ void Game::Initialize(HWND window, int width, int height) {
 
 	basicShader = new Shader(L"Basic");
 	basicShader->Create(m_deviceResources.get());
+	GenerateInputLayout<VertexLayout_Position>(m_deviceResources.get(), basicShader);
 
 	projection = Matrix::CreatePerspectiveFieldOfView(75.0f * XM_PI / 180.0f, (float)width / (float)height, 0.01f, 100.0f);
 	
 	auto device = m_deviceResources->GetD3DDevice();
 
-	const std::vector<D3D11_INPUT_ELEMENT_DESC> InputElementDescs = {
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-	device->CreateInputLayout(
-		InputElementDescs.data(), InputElementDescs.size(),
-		basicShader->vsBytecode.data(), basicShader->vsBytecode.size(),
-		inputLayout.ReleaseAndGetAddressOf());
-
 	// TP: allouer vertexBuffer ici
-	std::vector<float> data = 
-	{
-		-0.7f,0.5f, 0.0f, //v0
-		0.5f, 0.5f, 0.0f, //v1
-		0.5f, -0.5f, 0.0f, //v2
-		-0.5f, -0.5f, 0.0f, //v3
+	std::vector<VertexLayout_Position> data = {
+		{{-0.7f,0.5f, 0.0f, 1.0f}}, //v0
+		{{0.5f, 0.5f, 0.0f, 1.0f}}, //v1
+		{{0.5f, -0.5f, 0.0f, 1.0f}}, //v2
+		{{-0.5f, -0.5f, 0.0f, 1.0f}}, //v3
 	};
 
 	std::vector<uint32_t> indexData =
@@ -90,7 +82,7 @@ void Game::Initialize(HWND window, int width, int height) {
 
 
 	CD3D11_BUFFER_DESC desc(
-		sizeof(float) * data.size(), //la description a besoin de la taille en bit de notre tableau
+		sizeof(VertexLayout_Position) * data.size(), //la description a besoin de la taille en bit de notre tableau
 		D3D11_BIND_VERTEX_BUFFER); //on peut mettre plusieurs flag en gros la on utilise vertex psk on met que les positions
 	
 	CD3D11_BUFFER_DESC indexDesc(
@@ -161,13 +153,13 @@ void Game::Render() {
 	context->OMSetRenderTargets(1, &renderTarget, depthStencil);
 	
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	context->IASetInputLayout(inputLayout.Get());
+	ApplyInputLayout<VertexLayout_Position>(m_deviceResources.get());
 
 	basicShader->Apply(m_deviceResources.get());
 
 	// TP: Tracer votre vertex buffer ici
 	ID3D11Buffer* vbs[] = {vertexBuffer.Get()};
-	const UINT strides[] = {sizeof(float) * 3}; //taille de chaque element
+	const UINT strides[] = {sizeof(VertexLayout_Position)};
 	const UINT offsets[] = {0};
 
 	context->IASetVertexBuffers(0, 1, vbs, strides, offsets);
