@@ -9,6 +9,7 @@
 #include "Engine/Shader.h"
 #include "Engine/Buffers.h"
 #include "Engine/VertexLayout.h"
+#include "Engine/Texture.h"
 #include "Minicraft/Cube.h"
 
 extern void ExitGame() noexcept;
@@ -21,7 +22,6 @@ using Microsoft::WRL::ComPtr;
 // Global stuff
 Shader* basicShader;
 
-Cube cube;
 
 struct ModelData {
 	Matrix model;
@@ -33,6 +33,9 @@ struct CameraData {
 
 Matrix view;
 Matrix projection;
+
+Cube cube;
+Texture texture(L"terrain");
 
 VertexBuffer<VertexLayout_PositionUV> vertexBuffer;
 IndexBuffer indexBuffer;
@@ -66,6 +69,8 @@ void Game::Initialize(HWND window, int width, int height) {
 	basicShader->Create(m_deviceResources.get());
 	GenerateInputLayout<VertexLayout_PositionUV>(m_deviceResources.get(), basicShader);
 
+	texture.Create(m_deviceResources.get());
+	
 	projection = Matrix::CreatePerspectiveFieldOfView(75.0f * XM_PI / 180.0f, (float)width / (float)height, 0.01f, 100.0f);
 
 	cube.Generate(m_deviceResources.get());
@@ -136,8 +141,10 @@ void Game::Render() {
 	
 	constantBufferModel.ApplyToVS(m_deviceResources.get(), 0);
 	constantBufferCamera.ApplyToVS(m_deviceResources.get(), 1);
+
+	texture.Apply(m_deviceResources.get());
 	
-	for(float x = -100; x < 100; x += 0.1) {
+	for(float x = -10; x < 10; x += 0.2) {
 		constantBufferModel.data.model = Matrix::CreateTranslation(Vector3(x, x, x)).Transpose();
 		constantBufferModel.UpdateBuffer(m_deviceResources.get());
 		constantBufferCamera.data.view = view.Transpose();

@@ -6,10 +6,10 @@ Cube::Cube() {
 }
 
 void Cube::PushFace(Vector3 position, Vector3 up, Vector3 right) {
-    auto a = vertexBuffer.PushVertex({ToVec4(position), {1.0f, 1.0f}});
+    auto a = vertexBuffer.PushVertex({ToVec4(position), {0.0f, 0.0f}});
     auto b = vertexBuffer.PushVertex({ToVec4(position + up), {0.0f, 1.0f}});
     auto c = vertexBuffer.PushVertex({ToVec4(position + right), {1.0f, 0.0f}});
-    auto d = vertexBuffer.PushVertex({ToVec4(position + up + right), {0.0f, 0.0f}});
+    auto d = vertexBuffer.PushVertex({ToVec4(position + up + right), {1.0f, 1.0f}});
 
     indexBuffer.PushTriangle(a, b, c);
     indexBuffer.PushTriangle(d, c, b);
