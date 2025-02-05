@@ -2,6 +2,7 @@
 
 #include "Engine/Buffers.h"
 
+
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
@@ -10,7 +11,7 @@ class Camera {
     float nearPlane = 0.01f;
     float farPlane = 500.0f;
 	
-    Vector3 position = Vector3(0, 0, 0);
+    Vector3 position = Vector3(0, 0, 2);
     Quaternion rotation = Quaternion();
     Matrix projection;
     Matrix view;

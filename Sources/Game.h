@@ -2,6 +2,7 @@
 
 #include "Engine/DeviceResources.h"
 #include "Engine/StepTimer.h"
+#include "Minicraft/Camera.h"
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
@@ -35,7 +36,7 @@ public:
 private:
 	void Update(DX::StepTimer const& timer);
 	void Render();
-
+	
 	// Device resources.
 	std::unique_ptr<DeviceResources>		m_deviceResources;
 
