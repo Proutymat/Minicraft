@@ -2,6 +2,7 @@
 
 #include "Engine/VertexLayout.h"
 #include "Engine/Buffers.h"
+#include "Minicraft/Block.h"
 
 
 struct Orientation
@@ -20,11 +21,11 @@ public:
     Cube();
 
     void Draw(DeviceResources* deviceResources);    
-    void Generate(DeviceResources* deviceResources);
+    void Generate(DeviceResources* deviceResources, BlockData blockData);
 
 private:
     Vector4 ToVec4(const Vector3& v) {
         return Vector4(v.x, v.y, v.z, 1.0f);
     }
-    void PushFace(Vector3 position, Vector3 up, Vector3 right);
+    void PushFace(Vector3 position, Vector3 up, Vector3 right, int textureIndex);
 };

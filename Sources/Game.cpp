@@ -65,7 +65,7 @@ void Game::Initialize(HWND window, int width, int height) {
 	camera.UpdateAspectRatio((float)width / (float)height);
 	texture.Create(m_deviceResources.get());
 	
-	cube.Generate(m_deviceResources.get());
+	cube.Generate(m_deviceResources.get(), BlockData::Get(BlockId::WOOL));
 	
 	// Vertex buffer
 	vertexBuffer.PushVertex({{-0.5f,  0.5f,  0.0f, 1.0f}, {0.0f, 1.0f}});
@@ -129,7 +129,7 @@ void Game::Render() {
 
 	texture.Apply(m_deviceResources.get());
 	
-	for(float x = -1; x < 1; x += 0.2) {
+	for(float x = -10; x < 10; x += 2) {
 		constantBufferModel.data.model = Matrix::CreateTranslation(Vector3(x, x, x)).Transpose();
 		constantBufferModel.UpdateBuffer(m_deviceResources.get());
 
