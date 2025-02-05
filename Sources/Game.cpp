@@ -28,7 +28,7 @@ struct ModelData {
 };
 
 Cube cube;
-Camera camera(75, 120);
+Camera camera(75, 1);
 Texture texture(L"terrain");
 
 VertexBuffer<VertexLayout_PositionUV> vertexBuffer;
