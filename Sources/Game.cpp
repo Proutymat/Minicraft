@@ -27,7 +27,7 @@ struct ModelData {
 	Matrix model;
 };
 
-Cube cube;
+World world;
 Camera camera(75, 1);
 Texture texture(L"terrain");
 
@@ -65,7 +65,7 @@ void Game::Initialize(HWND window, int width, int height) {
 	camera.UpdateAspectRatio((float)width / (float)height);
 	texture.Create(m_deviceResources.get());
 	
-	cube.Generate(m_deviceResources.get(), BlockData::Get(BlockId::WOOL));
+	world.Generate(m_deviceResources.get());
 	
 	// Vertex buffer
 	vertexBuffer.PushVertex({{-0.5f,  0.5f,  0.0f, 1.0f}, {0.0f, 1.0f}});
@@ -124,19 +124,19 @@ void Game::Render() {
 	ApplyInputLayout<VertexLayout_PositionUV>(m_deviceResources.get());
 
 	basicShader->Apply(m_deviceResources.get());
-	
+
+	//
 	constantBufferModel.ApplyToVS(m_deviceResources.get(), 0);
 
 	texture.Apply(m_deviceResources.get());
-	
-	for(float x = -10; x < 10; x += 2) {
-		constantBufferModel.data.model = Matrix::CreateTranslation(Vector3(x, x, x)).Transpose();
-		constantBufferModel.UpdateBuffer(m_deviceResources.get());
 
-		camera.ApplyCamera(m_deviceResources.get());
+	//
+	constantBufferModel.data.model = Matrix::CreateTranslation(Vector3(0, 0, 2)).Transpose();
+	constantBufferModel.UpdateBuffer(m_deviceResources.get());
 
-		cube.Draw(m_deviceResources.get());
-	}
+	camera.ApplyCamera(m_deviceResources.get());
+
+	world.Draw(m_deviceResources.get());
 	
 	m_deviceResources->Present(); // Envoie nos commandes au GPU pour être affiché à l'écran
 }

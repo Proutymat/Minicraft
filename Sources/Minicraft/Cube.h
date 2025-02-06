@@ -17,11 +17,13 @@ class Cube {
 
 public:
     Matrix model;
-    
+    BlockId id = BlockId::GRASS;
+        
     Cube();
+    Cube(Vector3 position);
 
     void Draw(DeviceResources* deviceResources);    
-    void Generate(DeviceResources* deviceResources, BlockData blockData);
+    void Generate(DeviceResources* deviceResources);
 
 private:
     Vector4 ToVec4(const Vector3& v) {

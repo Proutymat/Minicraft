@@ -33,6 +33,7 @@
 
 #include <d3d11_1.h>
 #include <dxgi1_6.h>
+#include "d3d11shadertracing.h"
 
 #include <DirectXMath.h>
 #include <DirectXColors.h>
@@ -61,6 +62,7 @@
 #include <dxgidebug.h>
 #endif
 
+#include <iostream>
 #include "CommonStates.h"
 #include "DDSTextureLoader.h"
 #include "DirectXHelpers.h"

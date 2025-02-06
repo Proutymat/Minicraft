@@ -2,7 +2,7 @@
 
 #include "Engine/DeviceResources.h"
 #include "Engine/StepTimer.h"
-#include "Minicraft/Block.h"
+#include "Minicraft/World.h"
 #include "Minicraft/Camera.h"
 
 // A basic game implementation that creates a D3D11 device and
