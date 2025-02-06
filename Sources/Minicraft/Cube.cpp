@@ -6,15 +6,16 @@ Cube::Cube() {
     model = Matrix::Identity;
 }
 
-void Cube::PushFace(Vector3 position, Vector3 up, Vector3 right, int textureIndex) {
+void Cube::PushFace(Vector3 position, Vector3 up, Vector3 right, const int textureIndex) {
 
-    float x = textureIndex % 16;
-    float y = textureIndex / 16;
-
-    auto a = vertexBuffer.PushVertex({ToVec4(position), {1 + x, 1 + y}});
-    auto b = vertexBuffer.PushVertex({ToVec4(position + up), {1 + x, 0 + y}});
-    auto c = vertexBuffer.PushVertex({ToVec4(position + right), {0 + x, 1 + y}});
-    auto d = vertexBuffer.PushVertex({ToVec4(position + up + right), {0 + x, 0 + y}});
+    float offset = 1. / 16.;
+    float x = (textureIndex % 16) / 16.f;
+    float y = floor(textureIndex / 16.) / 16.;
+    
+    auto a = vertexBuffer.PushVertex({ToVec4(position), {x + offset, y + offset}});
+    auto b = vertexBuffer.PushVertex({ToVec4(position + up), {x + offset, y}});
+    auto c = vertexBuffer.PushVertex({ToVec4(position + right), {x, y + offset}});
+    auto d = vertexBuffer.PushVertex({ToVec4(position + up + right), {x, y}});
 
     indexBuffer.PushTriangle(a, b, c);
     indexBuffer.PushTriangle(d, c, b);

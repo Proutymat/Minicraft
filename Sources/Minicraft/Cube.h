@@ -27,5 +27,5 @@ private:
     Vector4 ToVec4(const Vector3& v) {
         return Vector4(v.x, v.y, v.z, 1.0f);
     }
-    void PushFace(Vector3 position, Vector3 up, Vector3 right, int textureIndex);
+    void PushFace(Vector3 position, Vector3 up, Vector3 right, const int textureIndex);
 };
