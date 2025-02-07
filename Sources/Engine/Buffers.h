@@ -16,6 +16,10 @@ public:
 		return data.size() - 1;
 	}
 
+	size_t Size() {
+		return data.size();
+	}
+
 	void Create(DeviceResources* deviceRes) {
 		CD3D11_BUFFER_DESC desc(
 			sizeof(TVertex) * data.size(),

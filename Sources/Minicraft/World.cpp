@@ -5,6 +5,11 @@
 void World::Generate(DeviceResources* deviceRes) {
     memset(data, EMPTY, sizeof(data));
 
+    Chunk chunk = chunks.emplace_back();
+    chunk.Generate(deviceRes);
+
+    
+    
     for (int x = 0; x < WORLD_SIZE; x++) {
         for (int z = 0; z < WORLD_SIZE; z++) {
             for (int y = 0; y < 3; y++) {
@@ -17,6 +22,7 @@ void World::Generate(DeviceResources* deviceRes) {
             *block = GRASS;
         }
     }
+    
 
     for (int x = 0; x < WORLD_SIZE; x++) {
         for (int y = 0; y < WORLD_SIZE; y++) {
@@ -25,7 +31,7 @@ void World::Generate(DeviceResources* deviceRes) {
                 if (!block) continue;
                 if (EMPTY == *block) continue;
 
-                auto& cube = cubes.emplace_back(Vector3(x, y, z));
+                auto& cube = chunks.emplace_back(Vector3(x, y, z));
                 cube.id = *block;
                 cube.Generate(deviceRes);
             }
@@ -37,11 +43,11 @@ void World::Generate(DeviceResources* deviceRes) {
 
 void World::Draw(DeviceResources* deviceRes) {
     constantBufferModel.ApplyToVS(deviceRes, 0);
-    for (auto cube : cubes) {
-        constantBufferModel.data.model = cube.model.Transpose();
+    for (auto chunk : chunks) {
+        constantBufferModel.data.model = chunk.model.Transpose();
         constantBufferModel.UpdateBuffer(deviceRes);
 
-        cube.Draw(deviceRes);
+        chunk.Draw(deviceRes);
     }
 }
 

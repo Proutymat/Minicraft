@@ -10,7 +10,7 @@
 #include "Engine/Buffers.h"
 #include "Engine/VertexLayout.h"
 #include "Engine/Texture.h"
-#include "Minicraft/Cube.h"
+#include "Minicraft/Chunk.h"
 
 extern void ExitGame() noexcept;
 
@@ -22,18 +22,12 @@ using Microsoft::WRL::ComPtr;
 // Global stuff
 Shader* basicShader;
 
-
-struct ModelData {
-	Matrix model;
-};
-
 World world;
 Camera camera(75, 1);
 Texture texture(L"terrain");
 
 VertexBuffer<VertexLayout_PositionUV> vertexBuffer;
 IndexBuffer indexBuffer;
-ConstantBuffer<ModelData> constantBufferModel;
 
 // Game
 Game::Game() noexcept(false) {
@@ -78,9 +72,6 @@ void Game::Initialize(HWND window, int width, int height) {
 	indexBuffer.PushTriangle(0, 1, 2);
 	indexBuffer.PushTriangle(0, 3, 1);
 	indexBuffer.Create(m_deviceResources.get());
-
-	// Model and Camera buffer
-	constantBufferModel.Create(m_deviceResources.get());
 }
 
 void Game::Tick() {
@@ -124,18 +115,8 @@ void Game::Render() {
 	ApplyInputLayout<VertexLayout_PositionUV>(m_deviceResources.get());
 
 	basicShader->Apply(m_deviceResources.get());
-
-	//
-	constantBufferModel.ApplyToVS(m_deviceResources.get(), 0);
-
 	texture.Apply(m_deviceResources.get());
-
-	//
-	constantBufferModel.data.model = Matrix::CreateTranslation(Vector3(0, 0, 2)).Transpose();
-	constantBufferModel.UpdateBuffer(m_deviceResources.get());
-
 	camera.ApplyCamera(m_deviceResources.get());
-
 	world.Draw(m_deviceResources.get());
 	
 	m_deviceResources->Present(); // Envoie nos commandes au GPU pour être affiché à l'écran

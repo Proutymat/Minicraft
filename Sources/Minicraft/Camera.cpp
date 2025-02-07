@@ -33,9 +33,9 @@ void Camera::Update(float dt, Keyboard::State kb, Mouse* mouse) {
 
     Vector3 move;
     
-    if (kb.Z) move += Vector3::Forward;
+    if (kb.W) move += Vector3::Forward;
     if (kb.S) move += Vector3::Backward;
-    if (kb.Q) move += Vector3::Left;
+    if (kb.A) move += Vector3::Left;
     if (kb.D) move += Vector3::Right;
     if (kb.Space) move += Vector3::Up;
     if (kb.LeftShift) move += Vector3::Down;
